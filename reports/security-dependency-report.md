@@ -1,6 +1,6 @@
 # DevOps Security & Dependency Report
 
-**Generated At:** 2026-08-31 04:30:07 UTC  
+**Generated At:** 2026-09-01 09:12:21 UTC  
 **Overall Security Status:** 🟢 Secure & Clean  
 **Total Actionable Findings:** 0
 
@@ -15,7 +15,7 @@
 | Dockerfile Hygiene | ✅ Clean | 0 |
 | Kubernetes Security & Limits | ✅ Clean | 0 |
 | Terraform Configuration Hygiene | ✅ Clean | 0 |
-| Dependency Freshness | ℹ️ Tracked | 8 updates available |
+| Dependency Freshness | ℹ️ Tracked | 4 updates available |
 
 ---
 
@@ -29,14 +29,10 @@
 
 | Manifest | Package | Current Version | Latest Version | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| `devops-agents-kit\.github\scripts\requirements.txt` | `pyyaml` | `6.0.1` | `6.0.3` | Update available (6.0.3) |
-| `devops-agents-kit\.github\scripts\requirements.txt` | `requests` | `2.31.0` | `2.34.2` | Update available (2.34.2) |
-| `devops-agents-kit\.github\scripts\requirements.txt` | `packaging` | `23.2` | `26.3` | Update available (26.3) |
-| `devops-agents-kit\.github\scripts\requirements.txt` | `pytest` | `8.0.0` | `9.1.1` | Update available (9.1.1) |
-| `.github\scripts\requirements.txt` | `pyyaml` | `6.0.1` | `6.0.3` | Update available (6.0.3) |
-| `.github\scripts\requirements.txt` | `requests` | `2.31.0` | `2.34.2` | Update available (2.34.2) |
-| `.github\scripts\requirements.txt` | `packaging` | `23.2` | `26.3` | Update available (26.3) |
-| `.github\scripts\requirements.txt` | `pytest` | `8.0.0` | `9.1.1` | Update available (9.1.1) |
+| `.github/scripts/requirements.txt` | `pyyaml` | `6.0.1` | `6.0.3` | Update available (6.0.3) |
+| `.github/scripts/requirements.txt` | `requests` | `2.31.0` | `2.34.2` | Update available (2.34.2) |
+| `.github/scripts/requirements.txt` | `packaging` | `23.2` | `26.3` | Update available (26.3) |
+| `.github/scripts/requirements.txt` | `pytest` | `8.0.0` | `9.1.1` | Update available (9.1.1) |
 
 ---
 

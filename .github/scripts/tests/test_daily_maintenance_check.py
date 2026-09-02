@@ -80,3 +80,4 @@ def test_generate_status_report(tmp_path: Path):
     assert "Zero production code or manifest files touched" in report
     assert "2026-09-02" in report
     assert "16 files" in report
+

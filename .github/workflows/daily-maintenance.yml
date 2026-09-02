@@ -1,0 +1,111 @@
+name: Daily Repository Maintenance
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # Daily at 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  maintenance-check:
+    name: Safe Daily Health Check & Status Log
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Default Branch
+        run: |
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current Branch: $CURRENT_BRANCH"
+          if [ "$CURRENT_BRANCH" != "main" ]; then
+            echo "ERROR: Daily maintenance workflow must run on the default branch (main). Aborting."
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: ".github/scripts/requirements.txt"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r .github/scripts/requirements.txt
+
+      - name: Run Safe Read-Only Checks & Update Maintenance Log
+        run: |
+          python .github/scripts/daily_maintenance_check.py
+
+      - name: Strict Fail-Safe Verification
+        id: verify-changes
+        run: |
+          echo "=== Inspecting Git Status ==="
+          git status --porcelain
+
+          # Check every changed or untracked file against strict whitelist
+          UNEXPECTED_CHANGES=0
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            # Extract file path (handles both staged and unstaged statuses)
+            FILE_PATH=$(echo "$line" | awk '{print $NF}')
+            
+            if [ "$FILE_PATH" != "docs/maintenance/daily-status.md" ]; then
+              echo "CRITICAL SAFETY VIOLATION: Unexpected file modified: $FILE_PATH"
+              UNEXPECTED_CHANGES=1
+            fi
+          done < <(git status --porcelain)
+
+          if [ $UNEXPECTED_CHANGES -ne 0 ]; then
+            echo "FATAL: Application or configuration file modifications detected!"
+            echo "Aborting commit and push immediately to preserve project integrity."
+            exit 1
+          fi
+
+          echo "Safety verification passed: Only docs/maintenance/daily-status.md was touched."
+
+      - name: Commit and Push Maintenance Record
+        run: |
+          # Verify diff formatting
+          git diff --check docs/maintenance/daily-status.md
+
+          # Check if daily-status.md actually has changes
+          if git diff --quiet docs/maintenance/daily-status.md && [ -z "$(git status --porcelain docs/maintenance/daily-status.md)" ]; then
+            echo "Daily status log is already completely up to date. Skipping commit."
+            exit 0
+          fi
+
+          # Configure Git author identity for repository owner contribution eligibility
+          git config user.name "itsdev-001"
+          git config user.email "devasinghdev456@gmail.com"
+
+          # Stage ONLY the dedicated maintenance record
+          git add docs/maintenance/daily-status.md
+
+          CURRENT_DATE=$(date -u +'%Y-%m-%d')
+          git commit -m "chore(maintenance): daily repository health check $CURRENT_DATE"
+          git push origin main
+
+      - name: Generate Job Summary
+        if: always()
+        run: |
+          echo "## 🛡️ Daily Repository Maintenance Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Status** | ${{ job.status == 'success' && '✅ Completed Successfully' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Target Branch** | \`main\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Updated Record** | \`docs/maintenance/daily-status.md\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Application Files Modified** | **0 (Strictly Untouched)** |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f "docs/maintenance/daily-status.md" ]; then
+            echo "### 📄 Latest Daily Status Record" >> $GITHUB_STEP_SUMMARY
+            cat docs/maintenance/daily-status.md >> $GITHUB_STEP_SUMMARY
+          fi

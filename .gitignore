@@ -67,3 +67,5 @@ Thumbs.db
 *.pem
 *.key
 
+# Local non-project directories
+KIET/

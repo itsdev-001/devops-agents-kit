@@ -81,3 +81,59 @@ def test_generate_status_report(tmp_path: Path):
     assert "2026-09-02" in report
     assert "16 files" in report
 
+
+def test_generate_status_report_no_trailing_whitespace(tmp_path: Path):
+    log_file = tmp_path / "daily-status.md"
+    now = datetime(2026, 9, 2, 12, 0, 0, tzinfo=timezone.utc)
+
+    report = generate_status_report(
+        repo_root=tmp_path,
+        target_log=log_file,
+        structure_ok=True,
+        core_found=11,
+        structure_err=[],
+        syntax_ok=True,
+        syntax_count=5,
+        syntax_err=[],
+        git_clean=True,
+        unexpected_files=[],
+        now=now,
+    )
+
+    for idx, line in enumerate(report.splitlines(), 1):
+        assert line == line.rstrip(), f"Line {idx} contains trailing whitespace: {repr(line)}"
+    assert report.endswith("\n"), "Report must end with a newline"
+
+
+def test_parse_existing_history_no_duplication(tmp_path: Path):
+    log_file = tmp_path / "daily-status.md"
+    sample_content = (
+        "# Automated Daily Repository Maintenance Log\n\n"
+        "## 📜 Maintenance Run History (Rolling 14-Day Audit)\n\n"
+        "| Date (UTC) | Health Status | Files Inspected | Application Modified? |\n"
+        "| :--- | :---: | :---: | :---: |\n"
+        "| 2026-09-02 | ✅ Success | 14 files | ❌ NO (0 changes) |\n"
+    )
+    log_file.write_text(sample_content, encoding="utf-8")
+
+    history = parse_existing_history(log_file)
+    assert len(history) == 1
+    assert history[0]["files_inspected"] == "14"
+
+    now = datetime(2026, 9, 3, 12, 0, 0, tzinfo=timezone.utc)
+    new_report = generate_status_report(
+        repo_root=tmp_path,
+        target_log=log_file,
+        structure_ok=True,
+        core_found=11,
+        structure_err=[],
+        syntax_ok=True,
+        syntax_count=5,
+        syntax_err=[],
+        git_clean=True,
+        unexpected_files=[],
+        now=now,
+    )
+    assert "14 files files" not in new_report
+    assert "14 files |" in new_report
+

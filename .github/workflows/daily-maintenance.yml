@@ -48,7 +48,13 @@ jobs:
         id: verify-changes
         run: |
           echo "=== Inspecting Git Status ==="
-          git status --porcelain
+          git status --short
+
+          echo "=== Inspecting Modified Files ==="
+          git diff --name-only
+
+          echo "=== Verifying Diff Whitespace Integrity ==="
+          git diff --check
 
           # Check every changed or untracked file against strict whitelist
           UNEXPECTED_CHANGES=0
@@ -73,8 +79,10 @@ jobs:
 
       - name: Commit and Push Maintenance Record
         run: |
-          # Verify diff formatting
-          git diff --check docs/maintenance/daily-status.md
+          # Pre-commit checks
+          git status --short
+          git diff --name-only
+          git diff --check
 
           # Check if daily-status.md actually has changes
           if git diff --quiet docs/maintenance/daily-status.md && [ -z "$(git status --porcelain docs/maintenance/daily-status.md)" ]; then
@@ -82,12 +90,23 @@ jobs:
             exit 0
           fi
 
+          # Stage ONLY the dedicated maintenance record
+          git add docs/maintenance/daily-status.md
+
+          # Verify staged files match exact expectation
+          STAGED_FILES=$(git diff --cached --name-only)
+          echo "=== Verifying Staged Files ==="
+          echo "$STAGED_FILES"
+
+          if [ "$STAGED_FILES" != "docs/maintenance/daily-status.md" ]; then
+            echo "CRITICAL SAFETY VIOLATION: Unexpected staged files: $STAGED_FILES"
+            echo "STOP. DO NOT COMMIT. DO NOT PUSH."
+            exit 1
+          fi
+
           # Configure Git author identity for repository owner contribution eligibility
           git config user.name "itsdev-001"
           git config user.email "devasinghdev456@gmail.com"
-
-          # Stage ONLY the dedicated maintenance record
-          git add docs/maintenance/daily-status.md
 
           CURRENT_DATE=$(date -u +'%Y-%m-%d')
           git commit -m "chore(maintenance): daily repository health check $CURRENT_DATE"

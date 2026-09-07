@@ -157,10 +157,11 @@ def parse_existing_history(log_file: Path) -> List[Dict[str, str]]:
             if in_history and line.startswith("| 20"):
                 cols = [c.strip() for c in line.split("|")[1:-1]]
                 if len(cols) >= 4:
+                    files_val = re.sub(r"\s*files\b.*", "", cols[2], flags=re.IGNORECASE).strip()
                     history.append({
                         "date": cols[0],
                         "status": cols[1],
-                        "files_inspected": cols[2],
+                        "files_inspected": files_val,
                         "app_modified": cols[3],
                     })
     except Exception:
@@ -207,10 +208,10 @@ def generate_status_report(
         "> [!IMPORTANT]",
         "> **Application Code Integrity Guaranteed**: Zero application source files, Dockerfiles, Kubernetes manifests, or infrastructure configurations were modified during this automated maintenance cycle.",
         "",
-        f"**Last Maintenance Run:** `{now_utc}`  ",
-        f"**Repository Health Status:** {overall_status}  ",
-        "**Automation Type:** Scheduled Daily Health Verification (`daily-maintenance.yml`)  ",
-        "**Target Branch:** `main` (Default Branch)  ",
+        f"**Last Maintenance Run:** `{now_utc}`<br>",
+        f"**Repository Health Status:** {overall_status}<br>",
+        "**Automation Type:** Scheduled Daily Health Verification (`daily-maintenance.yml`)<br>",
+        "**Target Branch:** `main` (Default Branch)",
         "",
         "---",
         "",
@@ -266,6 +267,7 @@ def generate_status_report(
         "---",
         "",
         "_Maintained autonomously by GitHub Actions (`.github/workflows/daily-maintenance.yml`)._",
+        "",
     ])
 
     return "\n".join(lines)
@@ -308,7 +310,7 @@ def run_maintenance() -> int:
         now=now,
     )
 
-    target_file.write_text(report_content, encoding="utf-8")
+    target_file.write_text(report_content, encoding="utf-8", newline="\n")
     print(f"Successfully generated daily maintenance record: {target_file}")
     return 0
 

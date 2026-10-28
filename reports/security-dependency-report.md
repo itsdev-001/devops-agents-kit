@@ -1,6 +1,6 @@
 # DevOps Security & Dependency Report
 
-**Generated At:** 2026-10-27 09:38:19 UTC  
+**Generated At:** 2026-10-28 10:22:25 UTC  
 **Overall Security Status:** 🟢 Secure & Clean  
 **Total Actionable Findings:** 0
 
@@ -32,7 +32,7 @@
 | `.github/scripts/requirements.txt` | `pyyaml` | `6.0.1` | `6.0.3` | Update available (6.0.3) |
 | `.github/scripts/requirements.txt` | `requests` | `2.31.0` | `2.34.2` | Update available (2.34.2) |
 | `.github/scripts/requirements.txt` | `packaging` | `23.2` | `26.3` | Update available (26.3) |
-| `.github/scripts/requirements.txt` | `pytest` | `8.0.0` | `9.1.1` | Update available (9.1.1) |
+| `.github/scripts/requirements.txt` | `pytest` | `8.0.0` | `9.2.0` | Update available (9.2.0) |
 
 ---
 
